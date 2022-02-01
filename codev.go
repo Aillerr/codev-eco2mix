@@ -1,60 +1,31 @@
 package main
 
 import (
-	"codev/eco2mix/eco2mixstruct"
-	"encoding/json"
+	E2M "codev/eco2mix"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 )
 
+var apiKey string = "751d9da6351bcb1d0a3710004096de3c5b0cb94d36e3264cb6d1d5f4"
+
 func main() {
-	address := "https://opendata.reseaux-energies.fr/api/records/1.0/search/?dataset=eco2mix-national-tr&q=&facet=nature&facet=date_heure"
-	makeRequest(address)
+	httpServer()
 }
 
-func makeRequest(address string) {
-	apiKey := "751d9da6351bcb1d0a3710004096de3c5b0cb94d36e3264cb6d1d5f4"
-	apiURL := address + "?key=" + apiKey
+func callE2M(apiKey string) {
+	E2M.MakeRequest(apiKey)
+}
 
-	resAPI := eco2mixstruct.Eco2mixAPI{}
+func httpServer() {
+	http.HandleFunc("/", handler)
 
-	reqClient := http.Client{
-		Timeout: time.Second * 2,
-	}
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
 
-	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	req.Header.Add("Accept", "application/json")
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "spacecount-tutorial")
-
-	res, getErr := reqClient.Do(req)
-
-	if getErr != nil {
-		log.Fatal(getErr)
-	}
-
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-
-	body, readErr := ioutil.ReadAll(res.Body)
-	if readErr != nil {
-		log.Fatal(readErr)
-	}
-
-	jsonErr := json.Unmarshal(body, &resAPI)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
-	}
-
-	fmt.Println(resAPI.Nhits)
-
+// Handler type function for a http call
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
+	//Special case, depends on what the server gets
+	callE2M(apiKey)
 }
