@@ -15,6 +15,7 @@ type Eco2mixAPI struct {
 		Dataset  string   `json:"dataset"`
 		Rows     int      `json:"rows"`
 		Start    int      `json:"start"`
+		Sort     []string `json:"sort"`
 		Facet    []string `json:"facet"`
 		Format   string   `json:"format"`
 		Timezone string   `json:"timezone"`
@@ -23,43 +24,33 @@ type Eco2mixAPI struct {
 		Datasetid string `json:"datasetid"`
 		Recordid  string `json:"recordid"`
 		Fields    struct {
-			Charbon                  int       `json:"charbon"`
-			Bioenergies              int       `json:"bioenergies"`
-			EchCommSuisse            int       `json:"ech_comm_suisse"`
-			HydrauliqueStepTurbinage int       `json:"hydraulique_step_turbinage"`
-			BioenergiesBiogaz        int       `json:"bioenergies_biogaz"`
-			Nature                   string    `json:"nature"`
-			GazAutres                int       `json:"gaz_autres"`
-			HydrauliqueLacs          int       `json:"hydraulique_lacs"`
-			BioenergiesBiomasse      int       `json:"bioenergies_biomasse"`
-			TauxCo2                  int       `json:"taux_co2"`
-			Nucleaire                int       `json:"nucleaire"`
-			Eolien                   int       `json:"eolien"`
-			EchPhysiques             int       `json:"ech_physiques"`
-			Gaz                      int       `json:"gaz"`
-			EchCommEspagne           string    `json:"ech_comm_espagne"`
-			Perimetre                string    `json:"perimetre"`
-			EchCommAngleterre        string    `json:"ech_comm_angleterre"`
-			BioenergiesDechets       int       `json:"bioenergies_dechets"`
-			EchCommAllemagneBelgique int       `json:"ech_comm_allemagne_belgique"`
-			FioulCogen               int       `json:"fioul_cogen"`
-			EchCommItalie            int       `json:"ech_comm_italie"`
-			Solaire                  int       `json:"solaire"`
-			Hydraulique              string    `json:"hydraulique"`
-			GazTac                   int       `json:"gaz_tac"`
-			Consommation             int       `json:"consommation"`
-			PrevisionJ               int       `json:"prevision_j"`
-			FioulAutres              int       `json:"fioul_autres"`
-			GazCcg                   int       `json:"gaz_ccg"`
-			Fioul                    int       `json:"fioul"`
-			Pompage                  int       `json:"pompage"`
-			DateHeure                time.Time `json:"date_heure"`
-			FioulTac                 int       `json:"fioul_tac"`
-			Date                     string    `json:"date"`
-			Heure                    string    `json:"heure"`
-			HydrauliqueFilEauEclusee string    `json:"hydraulique_fil_eau_eclusee"`
-			GazCogen                 int       `json:"gaz_cogen"`
-			PrevisionJ1              int       `json:"prevision_j1"`
+			Pompage                                      string    `json:"pompage"`
+			TchEolien                                    float64   `json:"tch_eolien"`
+			Thermique                                    int       `json:"thermique"`
+			Nucleaire                                    int       `json:"nucleaire"`
+			TcoBioenergies                               float64   `json:"tco_bioenergies"`
+			FluxPhysiquesDeBretagneVersNouvelleAquitaine string    `json:"flux_physiques_de_bretagne_vers_nouvelle_aquitaine"`
+			TcoSolaire                                   float64   `json:"tco_solaire"`
+			Date                                         string    `json:"date"`
+			TcoEolien                                    float64   `json:"tco_eolien"`
+			LibelleRegion                                string    `json:"libelle_region"`
+			FluxPhysiquesDeNouvelleAquitaineVersBretagne string    `json:"flux_physiques_de_nouvelle_aquitaine_vers_bretagne"`
+			DateHeure                                    time.Time `json:"date_heure"`
+			Heure                                        string    `json:"heure"`
+			TchSolaire                                   float64   `json:"tch_solaire"`
+			TchBioenergies                               float64   `json:"tch_bioenergies"`
+			TcoThermique                                 float64   `json:"tco_thermique"`
+			TchHydraulique                               float64   `json:"tch_hydraulique"`
+			Consommation                                 int       `json:"consommation"`
+			Solaire                                      int       `json:"solaire"`
+			Hydraulique                                  int       `json:"hydraulique"`
+			TcoHydraulique                               float64   `json:"tco_hydraulique"`
+			EchPhysiques                                 int       `json:"ech_physiques"`
+			Bioenergies                                  int       `json:"bioenergies"`
+			CodeInseeRegion                              string    `json:"code_insee_region"`
+			Nature                                       string    `json:"nature"`
+			Eolien                                       int       `json:"eolien"`
+			TchThermique                                 float64   `json:"tch_thermique"`
 		} `json:"fields"`
 		RecordTimestamp time.Time `json:"record_timestamp"`
 	} `json:"records"`
@@ -72,4 +63,23 @@ type Eco2mixAPI struct {
 			Path  string `json:"path"`
 		} `json:"facets"`
 	} `json:"facet_groups"`
+}
+
+type RegionDB struct {
+	id         int
+	code_INSEE int
+	nom        string
+}
+
+type ConsoDB struct {
+	Région      string
+	DateHeure   time.Time
+	Total       int
+	Thermique   int
+	Nucléaire   int
+	Éolien      int
+	Solaire     int
+	Hydraulique int
+	Pompage     string
+	Bioénergies int
 }
