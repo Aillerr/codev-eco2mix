@@ -34,18 +34,21 @@ func main() {
 			}
 		}
 	}()
+
+	httpServer()
+	fmt.Println("http started")
+
 	time.Sleep(999999999999)
 	ticker.Stop()
 	done <- true
 	fmt.Println("Ticker stopped")
 
-	//httpServer()
 }
 
 func timesUp() {
 	t := time.Now()
 	newt := t.Add(-time.Hour * 1)
-	newt2 := newt.Add(-time.Minute * 30)
+	newt2 := newt.Add(-time.Minute * 45)
 	fmt.Println(newt2)
 	min := (newt2.Minute() + (15 - (newt2.Minute() % 15)))
 	newt3 := time.Date(newt2.Year(), newt2.Month(), newt2.Day(), newt2.Hour(), min, 0, 0, newt2.Location())
@@ -75,5 +78,5 @@ func httpServer() {
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "E2M")
 	//Special case, depends on what the server gets
-	//callE2M()
+	timesUp()
 }

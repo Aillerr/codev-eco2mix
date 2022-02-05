@@ -16,7 +16,6 @@ import (
 
 var db *sql.DB
 var table string
-var dateFormat string
 
 // MAIN FUNC
 func Maineco2mix(date string, hour string) {
@@ -108,7 +107,7 @@ func fillSlice(apiData eco2mixstruct.Eco2mixAPI) []eco2mixstruct.ConsoDB {
 func initDB() {
 	dsn := os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("NET") + "(" + os.Getenv("ADDR") + ")/"
 	dsn += table
-
+	dsn += "?parseTime=true"
 	//fmt.Println(dsn)
 
 	var err error
@@ -125,6 +124,7 @@ func initDB() {
 	//fmt.Println("Connected")
 }
 
+//QUERIES
 func addToDB(conso eco2mixstruct.ConsoDB) error {
 	_, err := db.Exec("INSERT INTO eco2mixconso (région, dateHeure, total, thermique, nucléaire, éolien, solaire, hydraulique, pompage, bioénergies) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", conso.Région, conso.DateHeure, conso.Total, conso.Thermique, conso.Nucléaire, conso.Éolien, conso.Solaire, conso.Hydraulique, conso.Pompage, conso.Bioénergies)
 	if err != nil {
@@ -149,7 +149,7 @@ func addMultipletoDB(consos []eco2mixstruct.ConsoDB) {
 func recentData() ([]eco2mixstruct.ConsoDB, error) {
 	var consos []eco2mixstruct.ConsoDB
 
-	rows, err := db.Query("SELECT * FROM eco2mixconso LIMIT 12")
+	rows, err := db.Query("SELECT * FROM `eco2mixconso` ORDER BY `dateHeure` DESC LIMIT 12")
 	if err != nil {
 		return nil, fmt.Errorf("recentData : %v", err)
 	}
