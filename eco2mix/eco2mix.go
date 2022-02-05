@@ -19,28 +19,12 @@ var table string
 var dateFormat string
 
 // MAIN FUNC
-func Maineco2mix(apikey string) {
-	dateFormat = "2006-01-02 15:04:05.000000"
+func Maineco2mix(date string, hour string) {
+
 	table = "codev"
 	initDB()
 
-	//makeRequest(apikey)
-	var consosDB []eco2mixstruct.ConsoDB = fillSlice(makeRequest(apikey))
-	/*slice := make([]eco2mixstruct.ConsoDB, 2)
-	slice[0] = eco2mixstruct.ConsoDB{
-		Région:    "ARA",
-		DateHeure: "1999-01-02 00:00",
-		Total:     5000,
-		Pompage:   2500,
-		Nucléaire: 2500,
-	}
-	slice[1] = eco2mixstruct.ConsoDB{
-		Région:    "ARV",
-		DateHeure: "1999-01-02 00:00",
-		Total:     5000,
-		Pompage:   2500,
-		Nucléaire: 2500,
-	}*/
+	var consosDB []eco2mixstruct.ConsoDB = fillSlice(makeRequest(date, hour))
 
 	addMultipletoDB(consosDB)
 
@@ -52,9 +36,9 @@ func Maineco2mix(apikey string) {
 }
 
 // API CALLS TO FETCH DATA
-func makeRequest(key string) eco2mixstruct.Eco2mixAPI {
-	address := "https://opendata.reseaux-energies.fr/api/records/1.0/search/?dataset=eco2mix-regional-tr&q=&sort=-date_heure&facet=libelle_region&facet=nature&facet=date_heure&refine.date_heure=2022%2F02%2F04"
-	apiURL := address + "?key=" + key
+func makeRequest(date string, hour string) eco2mixstruct.Eco2mixAPI {
+	address := "https://opendata.reseaux-energies.fr/api/records/1.0/search/?dataset=eco2mix-regional-tr&q=&rows=20&sort=date_heure&facet=libelle_region&facet=nature&facet=date_heure&facet=heure" + date + hour
+	fmt.Println(address)
 
 	resAPI := eco2mixstruct.Eco2mixAPI{}
 
@@ -62,7 +46,7 @@ func makeRequest(key string) eco2mixstruct.Eco2mixAPI {
 		Timeout: time.Second * 2,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	req, err := http.NewRequest(http.MethodGet, address, nil)
 
 	if err != nil {
 		log.Fatal(err)
@@ -71,6 +55,7 @@ func makeRequest(key string) eco2mixstruct.Eco2mixAPI {
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "spacecount-tutorial")
+	req.Header.Add("apikey", os.Getenv("API_KEY"))
 
 	res, getErr := reqClient.Do(req)
 
@@ -103,7 +88,7 @@ func fillSlice(apiData eco2mixstruct.Eco2mixAPI) []eco2mixstruct.ConsoDB {
 		var fields = element.Fields
 
 		conso.Région = fields.LibelleRegion
-		conso.DateHeure = fields.DateHeure
+		conso.DateHeure = fields.DateHeure.Add(time.Hour * 1)
 		conso.Total = fields.Consommation
 		conso.Thermique = fields.Thermique
 		conso.Nucléaire = fields.Nucleaire
@@ -124,7 +109,7 @@ func initDB() {
 	dsn := os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("NET") + "(" + os.Getenv("ADDR") + ")/"
 	dsn += table
 
-	fmt.Println(dsn)
+	//fmt.Println(dsn)
 
 	var err error
 	db, err = sql.Open("mysql", dsn)
@@ -137,7 +122,7 @@ func initDB() {
 		log.Fatal(pingErr)
 	}
 
-	fmt.Println("Connected")
+	//fmt.Println("Connected")
 }
 
 func addToDB(conso eco2mixstruct.ConsoDB) error {
