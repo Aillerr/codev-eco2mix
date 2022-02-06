@@ -1,4 +1,4 @@
-package eco2mixstruct
+package eco2mixStruct
 
 import (
 	"time"

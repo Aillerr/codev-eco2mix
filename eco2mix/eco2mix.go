@@ -1,7 +1,7 @@
 package eco2mix
 
 import (
-	"codev/eco2mix/eco2mixstruct"
+	eco2mixStruct "codev/eco2mix/eco2mixstruct"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -19,28 +20,21 @@ var table string
 
 // MAIN FUNCS
 func Maineco2mix(date string) {
-
 	table = "codev"
 	initDB()
 
-	var consosDB []eco2mixstruct.ConsoDB = fillSlice(makeRequest(date))
+	var consosDB []eco2mixStruct.ConsoDB = fillSlice(makeRequest(date))
 
 	addMultipletoDB(consosDB)
-
-	consos, err := RecentData()
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Printf("Consos found: %v\n", consos)
 }
 
 // API CALLS TO FETCH DATA
-func makeRequest(date string) eco2mixstruct.Eco2mixAPI {
+func makeRequest(date string) eco2mixStruct.Eco2mixAPI {
 	address := "https://opendata.reseaux-energies.fr/api/records/1.0/search/?dataset=eco2mix-regional-tr&q=date_heure%3A%5B" + date + "%5D&rows=48&sort=date_heure&facet=libelle_region&facet=nature&facet=date_heure"
 
-	fmt.Println(address)
+	//fmt.Println(address)
 
-	resAPI := eco2mixstruct.Eco2mixAPI{}
+	resAPI := eco2mixStruct.Eco2mixAPI{}
 
 	reqClient := http.Client{
 		Timeout: time.Second * 2,
@@ -77,14 +71,14 @@ func makeRequest(date string) eco2mixstruct.Eco2mixAPI {
 		log.Fatal(jsonErr)
 	}
 
-	fmt.Println(resAPI.Nhits)
+	//fmt.Println(resAPI.Nhits)
 	return resAPI
 }
 
-func fillSlice(apiData eco2mixstruct.Eco2mixAPI) []eco2mixstruct.ConsoDB {
-	var consos []eco2mixstruct.ConsoDB
+func fillSlice(apiData eco2mixStruct.Eco2mixAPI) []eco2mixStruct.ConsoDB {
+	var consos []eco2mixStruct.ConsoDB
 	for _, element := range apiData.Records {
-		var conso eco2mixstruct.ConsoDB
+		var conso eco2mixStruct.ConsoDB
 		var fields = element.Fields
 
 		conso.Région = fields.LibelleRegion
@@ -126,7 +120,7 @@ func initDB() {
 }
 
 //QUERIES
-func addToDB(conso eco2mixstruct.ConsoDB) error {
+func addToDB(conso eco2mixStruct.ConsoDB) error {
 	_, err := db.Exec("INSERT INTO eco2mixconso (région, dateHeure, total, thermique, nucléaire, éolien, solaire, hydraulique, pompage, bioénergies) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", conso.Région, conso.DateHeure, conso.Total, conso.Thermique, conso.Nucléaire, conso.Éolien, conso.Solaire, conso.Hydraulique, conso.Pompage, conso.Bioénergies)
 	if err != nil {
 		return fmt.Errorf("addToDB: %v", err)
@@ -137,7 +131,7 @@ func addToDB(conso eco2mixstruct.ConsoDB) error {
 	return nil
 }
 
-func addMultipletoDB(consos []eco2mixstruct.ConsoDB) {
+func addMultipletoDB(consos []eco2mixStruct.ConsoDB) {
 	for _, element := range consos {
 		err := addToDB(element)
 		if err != nil {
@@ -147,8 +141,8 @@ func addMultipletoDB(consos []eco2mixstruct.ConsoDB) {
 }
 
 //Most recent data
-func RecentData() ([]eco2mixstruct.ConsoDB, error) {
-	var consos []eco2mixstruct.ConsoDB
+func RecentData() ([]eco2mixStruct.ConsoDB, error) {
+	var consos []eco2mixStruct.ConsoDB
 
 	rows, err := db.Query("SELECT * FROM `eco2mixconso` ORDER BY `dateHeure` DESC LIMIT 12")
 	if err != nil {
@@ -158,7 +152,7 @@ func RecentData() ([]eco2mixstruct.ConsoDB, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var conso eco2mixstruct.ConsoDB
+		var conso eco2mixStruct.ConsoDB
 		if err := rows.Scan(&conso.Région, &conso.DateHeure, &conso.Total, &conso.Thermique, &conso.Nucléaire, &conso.Éolien, &conso.Solaire, &conso.Hydraulique, &conso.Pompage, &conso.Bioénergies); err != nil {
 			return nil, fmt.Errorf("recentData : %v", err)
 		}
@@ -172,9 +166,14 @@ func RecentData() ([]eco2mixstruct.ConsoDB, error) {
 }
 
 //Last 24h data
-func DayRecentData() ([]eco2mixstruct.ConsoDB, error) {
-	var consosDB []eco2mixstruct.ConsoDB
-	rows, err := db.Query("SELECT * FROM `eco2mixconso` ORDER BY `dateHeure` DESC LIMIT 1152")
+func DayRecentData() ([]eco2mixStruct.ConsoDB, error) {
+	t := time.Now()
+	lastDay := t.Add(-time.Hour * 24)
+	strlastDay := strconv.Itoa(lastDay.Year()) + "-" + strconv.Itoa(int(lastDay.Month())) + "-" + strconv.Itoa(lastDay.Day()) + " "
+	strlastDay += strconv.Itoa(lastDay.Hour()) + ":" + strconv.Itoa(lastDay.Minute()) + ":00"
+
+	var consosDB []eco2mixStruct.ConsoDB
+	rows, err := db.Query("SELECT * FROM `eco2mixconso` WHERE dateHeure >= " + strlastDay + " ORDER BY `dateHeure`DESC LIMIT 1152")
 	if err != nil {
 		return nil, fmt.Errorf("24 hours Data : %v", err)
 	}
@@ -182,7 +181,7 @@ func DayRecentData() ([]eco2mixstruct.ConsoDB, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var conso eco2mixstruct.ConsoDB
+		var conso eco2mixStruct.ConsoDB
 		if err := rows.Scan(&conso.Région, &conso.DateHeure, &conso.Total, &conso.Thermique, &conso.Nucléaire, &conso.Éolien, &conso.Solaire, &conso.Hydraulique, &conso.Pompage, &conso.Bioénergies); err != nil {
 			return nil, fmt.Errorf("24 hours Data : %v", err)
 		}
