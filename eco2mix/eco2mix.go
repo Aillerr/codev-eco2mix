@@ -173,7 +173,7 @@ func DayRecentData() ([]eco2mixStruct.ConsoDB, error) {
 	strlastDay += strconv.Itoa(lastDay.Hour()) + ":" + strconv.Itoa(lastDay.Minute()) + ":00"
 
 	var consosDB []eco2mixStruct.ConsoDB
-	rows, err := db.Query("SELECT * FROM `eco2mixconso` WHERE dateHeure >= " + strlastDay + " ORDER BY `dateHeure`DESC LIMIT 1152")
+	rows, err := db.Query("SELECT * FROM `eco2mixconso` WHERE dateHeure >= '" + strlastDay + "' ORDER BY `dateHeure` DESC LIMIT 1152")
 	if err != nil {
 		return nil, fmt.Errorf("24 hours Data : %v", err)
 	}

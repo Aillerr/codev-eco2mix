@@ -89,6 +89,7 @@ func eco2mixHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(errjson)
 		return
 	}
+	fmt.Println("LAST HOUR ECO2MIX CALLED")
 	fmt.Fprintf(w, string(consosJson))
 }
 
@@ -103,5 +104,6 @@ func dayHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(errjson)
 		return
 	}
+	fmt.Println("LAST DAY ECO2MIX CALLED")
 	fmt.Fprintf(w, string(consosJson))
 }
