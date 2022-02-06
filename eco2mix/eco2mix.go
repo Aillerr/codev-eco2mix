@@ -17,17 +17,17 @@ import (
 var db *sql.DB
 var table string
 
-// MAIN FUNC
-func Maineco2mix(date string, hour string) {
+// MAIN FUNCS
+func Maineco2mix(date string) {
 
 	table = "codev"
 	initDB()
 
-	var consosDB []eco2mixstruct.ConsoDB = fillSlice(makeRequest(date, hour))
+	var consosDB []eco2mixstruct.ConsoDB = fillSlice(makeRequest(date))
 
 	addMultipletoDB(consosDB)
 
-	consos, err := recentData()
+	consos, err := RecentData()
 	if err != nil {
 		log.Println(err)
 	}
@@ -35,8 +35,9 @@ func Maineco2mix(date string, hour string) {
 }
 
 // API CALLS TO FETCH DATA
-func makeRequest(date string, hour string) eco2mixstruct.Eco2mixAPI {
-	address := "https://opendata.reseaux-energies.fr/api/records/1.0/search/?dataset=eco2mix-regional-tr&q=&rows=20&sort=date_heure&facet=libelle_region&facet=nature&facet=date_heure&facet=heure" + date + hour
+func makeRequest(date string) eco2mixstruct.Eco2mixAPI {
+	address := "https://opendata.reseaux-energies.fr/api/records/1.0/search/?dataset=eco2mix-regional-tr&q=date_heure%3A%5B" + date + "%5D&rows=48&sort=date_heure&facet=libelle_region&facet=nature&facet=date_heure"
+
 	fmt.Println(address)
 
 	resAPI := eco2mixstruct.Eco2mixAPI{}
@@ -146,7 +147,7 @@ func addMultipletoDB(consos []eco2mixstruct.ConsoDB) {
 }
 
 //Most recent data
-func recentData() ([]eco2mixstruct.ConsoDB, error) {
+func RecentData() ([]eco2mixstruct.ConsoDB, error) {
 	var consos []eco2mixstruct.ConsoDB
 
 	rows, err := db.Query("SELECT * FROM `eco2mixconso` ORDER BY `dateHeure` DESC LIMIT 12")
@@ -168,4 +169,28 @@ func recentData() ([]eco2mixstruct.ConsoDB, error) {
 		return nil, fmt.Errorf("recentData : %v", err)
 	}
 	return consos, nil
+}
+
+//Last 24h data
+func DayRecentData() ([]eco2mixstruct.ConsoDB, error) {
+	var consosDB []eco2mixstruct.ConsoDB
+	rows, err := db.Query("SELECT * FROM `eco2mixconso` ORDER BY `dateHeure` DESC LIMIT 1152")
+	if err != nil {
+		return nil, fmt.Errorf("24 hours Data : %v", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var conso eco2mixstruct.ConsoDB
+		if err := rows.Scan(&conso.Région, &conso.DateHeure, &conso.Total, &conso.Thermique, &conso.Nucléaire, &conso.Éolien, &conso.Solaire, &conso.Hydraulique, &conso.Pompage, &conso.Bioénergies); err != nil {
+			return nil, fmt.Errorf("24 hours Data : %v", err)
+		}
+		consosDB = append(consosDB, conso)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("24 hours Data : %v", err)
+	}
+	return consosDB, nil
 }

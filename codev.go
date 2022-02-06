@@ -2,6 +2,7 @@ package main
 
 import (
 	E2M "codev/eco2mix"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,7 +21,7 @@ func main() {
 	os.Setenv("ADDR", "127.0.0.1")
 	os.Setenv("API_KEY", "751d9da6351bcb1d0a3710004096de3c5b0cb94d36e3264cb6d1d5f4")
 
-	ticker := time.NewTicker(30 * time.Minute)
+	ticker := time.NewTicker(1 * time.Hour)
 	done := make(chan bool)
 	timesUp()
 	go func() {
@@ -36,9 +37,8 @@ func main() {
 	}()
 
 	httpServer()
-	fmt.Println("http started")
 
-	time.Sleep(999999999999)
+	fmt.Println("This shouldn't be printed")
 	ticker.Stop()
 	done <- true
 	fmt.Println("Ticker stopped")
@@ -47,36 +47,61 @@ func main() {
 
 func timesUp() {
 	t := time.Now()
-	newt := t.Add(-time.Hour * 1)
-	newt2 := newt.Add(-time.Minute * 45)
-	fmt.Println(newt2)
-	min := (newt2.Minute() + (15 - (newt2.Minute() % 15)))
-	newt3 := time.Date(newt2.Year(), newt2.Month(), newt2.Day(), newt2.Hour(), min, 0, 0, newt2.Location())
-	fmt.Println(newt3)
-	for i := 0; i < 4; i++ {
-		evolvt := newt3.Add(time.Minute * time.Duration(15*i))
-		date := strconv.Itoa(evolvt.Year()) + "%2F" + strconv.Itoa(int(evolvt.Month())) + "%2F" + strconv.Itoa(evolvt.Day())
-		hour := strconv.Itoa(evolvt.Hour()) + "%3A" + strconv.Itoa(evolvt.Minute())
-		refDate := "&refine.date_heure=" + date
-		refHeure := "&refine.heure=" + hour
-		callE2M(refDate, refHeure)
-	}
+	timeBeg := t.Add(-time.Hour * 4)
+	min := (timeBeg.Minute() + (15 - (timeBeg.Minute() % 15)))
+	dateBeg := time.Date(timeBeg.Year(), timeBeg.Month(), timeBeg.Day(), timeBeg.Hour(), min, 0, 0, timeBeg.Location())
+
+	timeEnd := dateBeg.Add(time.Minute * 45)
+
+	strBeg := strconv.Itoa(dateBeg.Year()) + "-" + strconv.Itoa(int(dateBeg.Month())) + "-" + strconv.Itoa(dateBeg.Day()) + "T"
+	strBeg += strconv.Itoa(dateBeg.Hour()) + "%3A" + strconv.Itoa(dateBeg.Minute()) + "%3A00"
+
+	strEnd := strconv.Itoa(timeEnd.Year()) + "-" + strconv.Itoa(int(timeEnd.Month())) + "-" + strconv.Itoa(timeEnd.Day()) + "T"
+	strEnd += strconv.Itoa(timeEnd.Hour()) + "%3A" + strconv.Itoa(timeEnd.Minute()) + "%3A00"
+
+	strDate := strBeg + "Z+TO+" + strEnd
+
+	callE2M(strDate)
 }
 
-func callE2M(date string, hour string) {
-	E2M.Maineco2mix(date, hour)
+func callE2M(date string) {
+	E2M.Maineco2mix(date)
 }
 
 func httpServer() {
 	//List all handlers
-	http.HandleFunc("/", handler)
+	http.HandleFunc("/eco2mix", eco2mixHandler)
+	http.HandleFunc("/eco2mix/24h", dayHandler)
 
 	log.Fatal(http.ListenAndServe(portStr, nil))
 }
 
-// Handler type function for a http call
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "E2M")
-	//Special case, depends on what the server gets
+// HTTP HANDLERS
+func eco2mixHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	timesUp()
+	consos, err := E2M.RecentData()
+	if err != nil {
+		log.Println(err)
+	}
+	consosJson, errjson := json.Marshal(consos)
+	if err != nil {
+		fmt.Println(errjson)
+		return
+	}
+	fmt.Fprintf(w, string(consosJson))
+}
+
+func dayHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	consos, err := E2M.DayRecentData()
+	if err != nil {
+		log.Println(err)
+	}
+	consosJson, errjson := json.Marshal(consos)
+	if err != nil {
+		fmt.Println(errjson)
+		return
+	}
+	fmt.Fprintf(w, string(consosJson))
 }
