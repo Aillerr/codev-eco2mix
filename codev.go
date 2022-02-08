@@ -71,7 +71,7 @@ func httpServer() {
 	http.HandleFunc("/eco2mix", eco2mixHandler)
 	http.HandleFunc("/eco2mix/24h", dayHandler)
 
-	log.Fatal(http.ListenAndServe(port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 // HTTP HANDLERS
