@@ -11,9 +11,6 @@ import (
 	"time"
 )
 
-var port int = 8000
-var portStr = ":" + strconv.Itoa(port)
-
 func main() {
 	os.Setenv("DBUSER", "b42c4d4f0f1d03")
 	os.Setenv("DBPASS", "4d227bbc")
@@ -69,11 +66,12 @@ func callE2M(date string) {
 }
 
 func httpServer() {
+	port := os.Getenv("PORT")
 	//List all handlers
 	http.HandleFunc("/eco2mix", eco2mixHandler)
 	http.HandleFunc("/eco2mix/24h", dayHandler)
 
-	log.Fatal(http.ListenAndServe(portStr, nil))
+	log.Fatal(http.ListenAndServe(port, nil))
 }
 
 // HTTP HANDLERS
