@@ -1,7 +1,7 @@
 package eco2mix
 
 import (
-	eco2mixStruct "codev/eco2mix/eco2mixstruct"
+	eco2mixStruct "codev/eco2mix/eco2mixStruct"
 	"database/sql"
 	"encoding/json"
 	"fmt"
