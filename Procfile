@@ -1,1 +1,1 @@
-web: bin/ecomix
+web: bin/codev
