@@ -18,7 +18,7 @@ func main() {
 	os.Setenv("DBUSER", "b42c4d4f0f1d03")
 	os.Setenv("DBPASS", "4d227bbc")
 	os.Setenv("NET", "tcp")
-	os.Setenv("ADDR", "eu-cdbr-west-02.cleardb.net/heroku_58174d84ec28fdc")
+	os.Setenv("ADDR", "eu-cdbr-west-02.cleardb.net")
 	os.Setenv("API_KEY", "751d9da6351bcb1d0a3710004096de3c5b0cb94d36e3264cb6d1d5f4")
 
 	ticker := time.NewTicker(1 * time.Hour)

@@ -100,10 +100,11 @@ func fillSlice(apiData eco2mixStruct.Eco2mixAPI) []eco2mixStruct.ConsoDB {
 
 // SQL AND DB RELATED STUFF
 func initDB() {
-	dsn := os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("NET") + "(" + os.Getenv("ADDR") + ")/"
-	dsn += table
-	dsn += "?parseTime=true"
-	//fmt.Println(dsn)
+	dsn := os.Getenv("DATABASE_URL")
+	//dsn := os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("NET") + "(" + os.Getenv("ADDR") + ")/"
+	//dsn += table
+	//dsn += "?parseTime=true"
+	fmt.Println(dsn)
 
 	var err error
 	db, err = sql.Open("mysql", dsn)
