@@ -21,7 +21,6 @@ var table string
 // MAIN FUNCS
 func Maineco2mix(date string) {
 	table = "codev"
-	initDB()
 
 	var consosDB []eco2mixStruct.ConsoDB = fillSlice(makeRequest(date))
 
@@ -99,7 +98,7 @@ func fillSlice(apiData eco2mixStruct.Eco2mixAPI) []eco2mixStruct.ConsoDB {
 }
 
 // SQL AND DB RELATED STUFF
-func initDB() {
+func InitDB() {
 	dsn := os.Getenv("DATABASE_URL")
 	//dsn := os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("NET") + "(" + os.Getenv("ADDR") + ")/"
 	//dsn += table
