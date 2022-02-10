@@ -100,9 +100,9 @@ func fillSlice(apiData eco2mixStruct.Eco2mixAPI) []eco2mixStruct.ConsoDB {
 // SQL AND DB RELATED STUFF
 func InitDB() {
 	dsn := os.Getenv("DATABASE_URL")
-	//dsn := os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("NET") + "(" + os.Getenv("ADDR") + ")/"
-	//dsn += table
-	//dsn += "?parseTime=true"
+	/*dsn := os.Getenv("DBUSER") + ":" + os.Getenv("DBPASS") + "@" + os.Getenv("NET") + "(" + os.Getenv("ADDR") + ")/"
+	dsn += "codev"
+	dsn += "?parseTime=true"*/
 	fmt.Println(dsn)
 
 	var err error
@@ -192,4 +192,30 @@ func DayRecentData() ([]eco2mixStruct.ConsoDB, error) {
 		return nil, fmt.Errorf("24 hours Data : %v", err)
 	}
 	return consosDB, nil
+}
+
+//Ratios Handler
+func GetRatios(region string) (eco2mixStruct.RatioStruct, error) {
+	fmt.Println(region)
+	rows, err := db.Query("SELECT * FROM `eco2mixconso` WHERE `région` = '" + region + "' ORDER BY `dateHeure` DESC LIMIT 1")
+	if err != nil {
+		return eco2mixStruct.RatioStruct{}, fmt.Errorf("ratio : %v", err)
+	}
+
+	var conso eco2mixStruct.ConsoDB
+	defer rows.Close()
+	for rows.Next() {
+		if err := rows.Scan(&conso.Région, &conso.DateHeure, &conso.Total, &conso.Thermique, &conso.Nucléaire, &conso.Éolien, &conso.Solaire, &conso.Hydraulique, &conso.Pompage, &conso.Bioénergies); err != nil {
+			return eco2mixStruct.RatioStruct{}, fmt.Errorf("ratio : %v", err)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return eco2mixStruct.RatioStruct{}, fmt.Errorf("ratio : %v", err)
+	}
+	fmt.Println(conso)
+	var ratio eco2mixStruct.RatioStruct
+	ratio.Région = conso.Région
+	ratio.Ratio = float64(conso.Total) / (15 * 60)
+
+	return ratio, nil
 }

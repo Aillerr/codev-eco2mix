@@ -65,12 +65,6 @@ type Eco2mixAPI struct {
 	} `json:"facet_groups"`
 }
 
-type RegionDB struct {
-	id         int
-	code_INSEE int
-	nom        string
-}
-
 type ConsoDB struct {
 	Région      string
 	DateHeure   time.Time
@@ -82,4 +76,13 @@ type ConsoDB struct {
 	Hydraulique int
 	Pompage     string
 	Bioénergies int
+}
+
+type RegionPOST struct {
+	Région string `json:"region"`
+}
+
+type RatioStruct struct {
+	Région string
+	Ratio  float64
 }

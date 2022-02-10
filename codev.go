@@ -2,8 +2,10 @@ package main
 
 import (
 	E2M "codev/eco2mix"
+	"codev/eco2mix/eco2mixStruct"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -16,6 +18,10 @@ func main() {
 	os.Setenv("DBPASS", "4d227bbc")
 	os.Setenv("NET", "tcp")
 	os.Setenv("ADDR", "eu-cdbr-west-02.cleardb.net")
+	/*os.Setenv("DBUSER", "root")
+	os.Setenv("DBPASS", "")
+	os.Setenv("NET", "tcp")
+	os.Setenv("ADDR", "127.0.0.1")*/
 	os.Setenv("API_KEY", "751d9da6351bcb1d0a3710004096de3c5b0cb94d36e3264cb6d1d5f4")
 	E2M.InitDB()
 
@@ -71,6 +77,7 @@ func httpServer() {
 	//List all handlers
 	http.HandleFunc("/eco2mix", eco2mixHandler)
 	http.HandleFunc("/eco2mix/24h", dayHandler)
+	http.HandleFunc("/eco2mix/ratio", ratioHandler)
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
@@ -105,4 +112,20 @@ func dayHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("LAST DAY ECO2MIX CALLED")
 	fmt.Fprintf(w, string(consosJson))
+}
+
+func ratioHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	reqBody, _ := ioutil.ReadAll(r.Body)
+	var regionStruct eco2mixStruct.RegionPOST
+	json.Unmarshal(reqBody, &regionStruct)
+
+	ret, err := E2M.GetRatios(regionStruct.Région)
+	if err != nil {
+		log.Println(err)
+	}
+	jsonret, _ := json.Marshal(ret)
+
+	fmt.Println("RATIOS CALLED")
+	fmt.Fprintf(w, string(jsonret))
 }
